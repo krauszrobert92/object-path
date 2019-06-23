@@ -91,6 +91,10 @@
       if (hasShallowProperty(obj, prop)) {
         return obj[prop];
       }
+      if ((typeof prop === 'string' && Array.isArray(obj) && prop.match(/^\{[a-zA-Z0-9]+\:[A-Za-z0-9]+\}$/) )) {
+        var [key, value] = prop.substr(1, prop.length-2).split(":");
+        return obj.find(function (nestedObject) {return nestedObject[key] == value})
+      }
     }
 
     function set(obj, path, value, doNotReplace){
@@ -121,7 +125,7 @@
         }
       }
 
-      return set(obj[currentPath], path.slice(1), value, doNotReplace);
+      return set(currentValue ? currentValue : obj[currentPath], path.slice(1), value, doNotReplace);
     }
 
     objectPath.has = function (obj, path) {
@@ -245,7 +249,7 @@
         return nextObj;
       }
 
-      return objectPath.get(obj[currentPath], path.slice(1), defaultValue);
+      return objectPath.get(nextObj, path.slice(1), defaultValue);
     };
 
     objectPath.del = function del(obj, path) {

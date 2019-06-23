@@ -112,6 +112,17 @@ describe('get', function() {
     }
   );
 
+  it('should return with query in path', function() {
+    var obj = {
+      a: [
+        {id: "testId1", value: "test1Value"},
+        {id: "testId2", value: "test2Value"}
+      ]
+    };
+    expect(objectPath.get(obj, 'a.{id:testId2}', null)).to.be.deep.equal({id: "testId2", value: "test2Value"});
+    expect(objectPath.get(obj, 'a.{id:testId2}.value', null)).to.be.equal("test2Value");
+  })
+
   it('should skip non own properties', function() {
     var Base = function(enabled){ };
     Base.prototype = {
@@ -235,6 +246,18 @@ describe('set', function() {
     objectPath.set(obj, '0', 'foo');
     expect(obj[0]).to.be.equal('foo');
   });
+
+  it('should set value with query in path', function() {
+    var obj = {
+      a: [
+        {id: "testId1", value: "test1Value"},
+        {id: "testId2", value: "test2Value"}
+      ]
+    };
+    objectPath.set(obj, 'a.{id:testId2}.value', "newValue")
+    expect(objectPath.get(obj, 'a.{id:testId2}.value', null)).to.be.equal("newValue");
+  })
+
 });
 
 
