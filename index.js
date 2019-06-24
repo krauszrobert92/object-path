@@ -1,296 +1,321 @@
-(function (root, factory){
-  'use strict';
+(function (root, factory) {
+	'use strict';
 
-  /*istanbul ignore next:cant test*/
-  if (typeof module === 'object' && typeof module.exports === 'object') {
-    module.exports = factory();
-  } else if (typeof define === 'function' && define.amd) {
-    // AMD. Register as an anonymous module.
-    define([], factory);
-  } else {
-    // Browser globals
-    root.objectPath = factory();
-  }
-})(this, function(){
-  'use strict';
+	/*istanbul ignore next:cant test*/
+	if (typeof module === 'object' && typeof module.exports === 'object') {
+		module.exports = factory();
+	} else if (typeof define === 'function' && define.amd) {
+		// AMD. Register as an anonymous module.
+		define([], factory);
+	} else {
+		// Browser globals
+		root.objectPath = factory();
+	}
+})(this, function () {
+	'use strict';
 
-  var toStr = Object.prototype.toString;
-  function hasOwnProperty(obj, prop) {
-    if(obj == null) {
-      return false
-    }
-    //to handle objects with null prototypes (too edge case?)
-    return Object.prototype.hasOwnProperty.call(obj, prop)
-  }
+	var toStr = Object.prototype.toString;
+	function hasOwnProperty(obj, prop) {
+		if (obj == null) {
+			return false
+		}
+		//to handle objects with null prototypes (too edge case?)
+		return Object.prototype.hasOwnProperty.call(obj, prop)
+	}
 
-  function isEmpty(value){
-    if (!value) {
-      return true;
-    }
-    if (isArray(value) && value.length === 0) {
-        return true;
-    } else if (typeof value !== 'string') {
-        for (var i in value) {
-            if (hasOwnProperty(value, i)) {
-                return false;
-            }
-        }
-        return true;
-    }
-    return false;
-  }
+	function isEmpty(value) {
+		if (!value) {
+			return true;
+		}
+		if (isArray(value) && value.length === 0) {
+			return true;
+		} else if (typeof value !== 'string') {
+			for (var i in value) {
+				if (hasOwnProperty(value, i)) {
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
+	}
 
-  function toString(type){
-    return toStr.call(type);
-  }
+	function toString(type) {
+		return toStr.call(type);
+	}
 
-  function isObject(obj){
-    return typeof obj === 'object' && toString(obj) === "[object Object]";
-  }
+	function isObject(obj) {
+		return typeof obj === 'object' && toString(obj) === "[object Object]";
+	}
 
-  var isArray = Array.isArray || function(obj){
-    /*istanbul ignore next:cant test*/
-    return toStr.call(obj) === '[object Array]';
-  }
+	var isArray = Array.isArray || function (obj) {
+		/*istanbul ignore next:cant test*/
+		return toStr.call(obj) === '[object Array]';
+	}
 
-  function isBoolean(obj){
-    return typeof obj === 'boolean' || toString(obj) === '[object Boolean]';
-  }
+	function isBoolean(obj) {
+		return typeof obj === 'boolean' || toString(obj) === '[object Boolean]';
+	}
 
-  function getKey(key){
-    var intKey = parseInt(key);
-    if (intKey.toString() === key) {
-      return intKey;
-    }
-    return key;
-  }
+	function getKey(key) {
+		var intKey = parseInt(key);
+		if (intKey.toString() === key) {
+			return intKey;
+		}
+		return key;
+	}
 
-  function factory(options) {
-    options = options || {}
+	function factory(options) {
+		options = options || {}
 
-    var objectPath = function(obj) {
-      return Object.keys(objectPath).reduce(function(proxy, prop) {
-        if(prop === 'create') {
-          return proxy;
-        }
+		var objectPath = function (obj) {
+			return Object.keys(objectPath).reduce(function (proxy, prop) {
+				if (prop === 'create') {
+					return proxy;
+				}
 
-        /*istanbul ignore else*/
-        if (typeof objectPath[prop] === 'function') {
-          proxy[prop] = objectPath[prop].bind(objectPath, obj);
-        }
+				/*istanbul ignore else*/
+				if (typeof objectPath[prop] === 'function') {
+					proxy[prop] = objectPath[prop].bind(objectPath, obj);
+				}
 
-        return proxy;
-      }, {});
-    };
+				return proxy;
+			}, {});
+		};
 
-    function hasShallowProperty(obj, prop) {
-      return (options.includeInheritedProps || (typeof prop === 'number' && Array.isArray(obj)) || hasOwnProperty(obj, prop))
-    }
+		function hasShallowProperty(obj, prop) {
+			return (options.includeInheritedProps || (typeof prop === 'number' && Array.isArray(obj)) || hasOwnProperty(obj, prop))
+		}
 
-    function getShallowProperty(obj, prop) {
-      if (hasShallowProperty(obj, prop)) {
-        return obj[prop];
-      }
-      if ((typeof prop === 'string' && Array.isArray(obj) && prop.match(/^\{[a-zA-Z0-9]+\:[A-Za-z0-9]+\}$/) )) {
-        var [key, value] = prop.substr(1, prop.length-2).split(":");
-        return obj.find(function (nestedObject) {return nestedObject[key] == value})
-      }
-    }
+		function isQueryProp(prop) {
+			return typeof prop === 'string' && prop.match(/^\{[a-zA-Z0-9]+\:[A-Za-z0-9]+\}$/);
+		}
 
-    function set(obj, path, value, doNotReplace){
-      if (typeof path === 'number') {
-        path = [path];
-      }
-      if (!path || path.length === 0) {
-        return obj;
-      }
-      if (typeof path === 'string') {
-        return set(obj, path.split('.').map(getKey), value, doNotReplace);
-      }
-      var currentPath = path[0];
-      var currentValue = getShallowProperty(obj, currentPath);
-      if (path.length === 1) {
-        if (currentValue === void 0 || !doNotReplace) {
-          obj[currentPath] = value;
-        }
-        return currentValue;
-      }
+		function getQuery(prop) {
+			return prop.substr(1, prop.length - 2).split(":");
+		}
 
-      if (currentValue === void 0) {
-        //check if we assume an array
-        if(typeof path[1] === 'number') {
-          obj[currentPath] = [];
-        } else {
-          obj[currentPath] = {};
-        }
-      }
+		function getShallowProperty(obj, prop) {
+			if (hasShallowProperty(obj, prop)) {
+				return obj[prop];
+			}
+			if (Array.isArray(obj) && isQueryProp(prop)) {
+				var [key, value] = getQuery(prop);
+				return obj.find(function (nestedObject) { return nestedObject[key] == value })
+			}
+		}
 
-      return set(currentValue ? currentValue : obj[currentPath], path.slice(1), value, doNotReplace);
-    }
+		function set(obj, path, value, doNotReplace) {
+			if (typeof path === 'number') {
+				path = [path];
+			}
+			if (!path || path.length === 0) {
+				return obj;
+			}
+			if (typeof path === 'string') {
+				return set(obj, path.split('.').map(getKey), value, doNotReplace);
+			}
+			var currentPath = path[0];
+			var currentValue = getShallowProperty(obj, currentPath);
+			if (path.length === 1) {
+				if (currentValue === void 0 || !doNotReplace) {
+					obj[currentPath] = value;
+				}
+				return currentValue;
+			}
 
-    objectPath.has = function (obj, path) {
-      if (typeof path === 'number') {
-        path = [path];
-      } else if (typeof path === 'string') {
-        path = path.split('.');
-      }
+			if (currentValue === void 0) {
+				//check if we assume an array
+				if (typeof path[1] === 'number') {
+					obj[currentPath] = [];
+				} else {
+					obj[currentPath] = {};
+				}
+			}
 
-      if (!path || path.length === 0) {
-        return !!obj;
-      }
+			return set(currentValue ? currentValue : obj[currentPath], path.slice(1), value, doNotReplace);
+		}
 
-      for (var i = 0; i < path.length; i++) {
-        var j = getKey(path[i]);
+		objectPath.has = function (obj, path) {
+			if (typeof path === 'number') {
+				path = [path];
+			} else if (typeof path === 'string') {
+				path = path.split('.');
+			}
 
-        if((typeof j === 'number' && isArray(obj) && j < obj.length) ||
-          (options.includeInheritedProps ? (j in Object(obj)) : hasOwnProperty(obj, j))) {
-          obj = obj[j];
-        } else {
-          return false;
-        }
-      }
+			if (!path || path.length === 0) {
+				return !!obj;
+			}
 
-      return true;
-    };
+			for (var i = 0; i < path.length; i++) {
+				var j = getKey(path[i]);
 
-    objectPath.ensureExists = function (obj, path, value){
-      return set(obj, path, value, true);
-    };
+				if ((typeof j === 'number' && isArray(obj) && j < obj.length) ||
+					(options.includeInheritedProps ? (j in Object(obj)) : hasOwnProperty(obj, j))) {
+					obj = obj[j];
+				} else {
+					return false;
+				}
+			}
 
-    objectPath.set = function (obj, path, value, doNotReplace){
-      return set(obj, path, value, doNotReplace);
-    };
+			return true;
+		};
 
-    objectPath.insert = function (obj, path, value, at){
-      var arr = objectPath.get(obj, path);
-      at = ~~at;
-      if (!isArray(arr)) {
-        arr = [];
-        objectPath.set(obj, path, arr);
-      }
-      arr.splice(at, 0, value);
-    };
+		objectPath.ensureExists = function (obj, path, value) {
+			return set(obj, path, value, true);
+		};
 
-    objectPath.empty = function(obj, path) {
-      if (isEmpty(path)) {
-        return void 0;
-      }
-      if (obj == null) {
-        return void 0;
-      }
+		objectPath.set = function (obj, path, value, doNotReplace) {
+			return set(obj, path, value, doNotReplace);
+		};
 
-      var value, i;
-      if (!(value = objectPath.get(obj, path))) {
-        return void 0;
-      }
+		objectPath.insert = function (obj, path, value, at) {
+			var arr = objectPath.get(obj, path);
+			at = ~~at;
+			if (!isArray(arr)) {
+				arr = [];
+				objectPath.set(obj, path, arr);
+			}
+			arr.splice(at, 0, value);
+		};
 
-      if (typeof value === 'string') {
-        return objectPath.set(obj, path, '');
-      } else if (isBoolean(value)) {
-        return objectPath.set(obj, path, false);
-      } else if (typeof value === 'number') {
-        return objectPath.set(obj, path, 0);
-      } else if (isArray(value)) {
-        value.length = 0;
-      } else if (isObject(value)) {
-        for (i in value) {
-          if (hasShallowProperty(value, i)) {
-            delete value[i];
-          }
-        }
-      } else {
-        return objectPath.set(obj, path, null);
-      }
-    };
+		objectPath.empty = function (obj, path) {
+			if (isEmpty(path)) {
+				return void 0;
+			}
+			if (obj == null) {
+				return void 0;
+			}
 
-    objectPath.push = function (obj, path /*, values */){
-      var arr = objectPath.get(obj, path);
-      if (!isArray(arr)) {
-        arr = [];
-        objectPath.set(obj, path, arr);
-      }
+			var value, i;
+			if (!(value = objectPath.get(obj, path))) {
+				return void 0;
+			}
 
-      arr.push.apply(arr, Array.prototype.slice.call(arguments, 2));
-    };
+			if (typeof value === 'string') {
+				return objectPath.set(obj, path, '');
+			} else if (isBoolean(value)) {
+				return objectPath.set(obj, path, false);
+			} else if (typeof value === 'number') {
+				return objectPath.set(obj, path, 0);
+			} else if (isArray(value)) {
+				value.length = 0;
+			} else if (isObject(value)) {
+				for (i in value) {
+					if (hasShallowProperty(value, i)) {
+						delete value[i];
+					}
+				}
+			} else {
+				return objectPath.set(obj, path, null);
+			}
+		};
 
-    objectPath.coalesce = function (obj, paths, defaultValue) {
-      var value;
+		objectPath.push = function (obj, path /*, values */) {
+			var arr = objectPath.get(obj, path);
+			if (!isArray(arr)) {
+				arr = [];
+				objectPath.set(obj, path, arr);
+			}
 
-      for (var i = 0, len = paths.length; i < len; i++) {
-        if ((value = objectPath.get(obj, paths[i])) !== void 0) {
-          return value;
-        }
-      }
+			arr.push.apply(arr, Array.prototype.slice.call(arguments, 2));
+		};
 
-      return defaultValue;
-    };
+		objectPath.coalesce = function (obj, paths, defaultValue) {
+			var value;
 
-    objectPath.get = function (obj, path, defaultValue){
-      if (typeof path === 'number') {
-        path = [path];
-      }
-      if (!path || path.length === 0) {
-        return obj;
-      }
-      if (obj == null) {
-        return defaultValue;
-      }
-      if (typeof path === 'string') {
-        return objectPath.get(obj, path.split('.'), defaultValue);
-      }
+			for (var i = 0, len = paths.length; i < len; i++) {
+				if ((value = objectPath.get(obj, paths[i])) !== void 0) {
+					return value;
+				}
+			}
 
-      var currentPath = getKey(path[0]);
-      var nextObj = getShallowProperty(obj, currentPath)
-      if (nextObj === void 0) {
-        return defaultValue;
-      }
+			return defaultValue;
+		};
 
-      if (path.length === 1) {
-        return nextObj;
-      }
+		objectPath.get = function (obj, path, defaultValue) {
+			if (typeof path === 'number') {
+				path = [path];
+			}
+			if (!path || path.length === 0) {
+				return obj;
+			}
+			if (obj == null) {
+				return defaultValue;
+			}
+			if (typeof path === 'string') {
+				return objectPath.get(obj, path.split('.'), defaultValue);
+			}
 
-      return objectPath.get(nextObj, path.slice(1), defaultValue);
-    };
+			var currentPath = getKey(path[0]);
+			var nextObj = getShallowProperty(obj, currentPath)
+			if (nextObj === void 0) {
+				return defaultValue;
+			}
 
-    objectPath.del = function del(obj, path) {
-      if (typeof path === 'number') {
-        path = [path];
-      }
+			if (path.length === 1) {
+				return nextObj;
+			}
 
-      if (obj == null) {
-        return obj;
-      }
+			return objectPath.get(nextObj, path.slice(1), defaultValue);
+		};
 
-      if (isEmpty(path)) {
-        return obj;
-      }
-      if(typeof path === 'string') {
-        return objectPath.del(obj, path.split('.'));
-      }
+		objectPath.del = function del(obj, path) {
+			if (typeof path === 'number') {
+				path = [path];
+			}
 
-      var currentPath = getKey(path[0]);
-      if (!hasShallowProperty(obj, currentPath)) {
-        return obj;
-      }
+			if (obj == null) {
+				return obj;
+			}
 
-      if(path.length === 1) {
-        if (isArray(obj)) {
-          obj.splice(currentPath, 1);
-        } else {
-          delete obj[currentPath];
-        }
-      } else {
-        return objectPath.del(obj[currentPath], path.slice(1));
-      }
+			if (isEmpty(path)) {
+				return obj;
+			}
+			if (typeof path === 'string') {
+				return objectPath.del(obj, path.split('.'));
+			}
 
-      return obj;
-    }
+			var currentPath = getKey(path[0]);
 
-    return objectPath;
-  }
+			if (path.length == 1) {
+				if (isArray(obj)) {
+					if (isQueryProp(currentPath)) {
+						var [key, value] = getQuery(currentPath);
+						var index = obj.findIndex(function (o) { return o[key] == value; })
 
-  var mod = factory();
-  mod.create = factory;
-  mod.withInheritedProps = factory({includeInheritedProps: true})
-  return mod;
+						if (index >= 0) {
+							obj.splice(index, 1);
+						}
+						return obj;
+					}
+				}
+			}
+
+
+			if (!hasShallowProperty(obj, currentPath)) {
+				return obj;
+			}
+
+
+			if (path.length === 1) {
+				if (isArray(obj)) {
+					obj.splice(currentPath, 1);
+				} else {
+					delete obj[currentPath];
+				}
+			} else {
+				return objectPath.del(obj[currentPath], path.slice(1));
+			}
+
+			return obj;
+		}
+
+		return objectPath;
+	}
+
+	var mod = factory();
+	mod.create = factory;
+	mod.withInheritedProps = factory({ includeInheritedProps: true })
+	return mod;
 });

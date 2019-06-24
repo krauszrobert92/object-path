@@ -22,7 +22,9 @@
     "mocha-lcov-reporter": "^1.2.0"
   },
   "scripts": {
-    "test": "istanbul cover ./node_modules/mocha/bin/_mocha test.js --report html -- -R spec"
+    "test": "istanbul cover ./node_modules/mocha/bin/_mocha test.js --report html -- -R spec ",
+    "test:watch": "node ./node_modules/mocha/bin/_mocha test.js  --watch",
+    "performance": "node --allow-natives-syntax --harmony ./node_modules/mocha/bin/_mocha --reporter mocha-performance test.js "
   },
   "keywords": [
     "deep",
@@ -41,5 +43,8 @@
     "nested",
     "key"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "mocha-performance": "^0.1.1"
+  }
 }
