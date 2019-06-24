@@ -56,7 +56,11 @@ var obj = {
     c: ["e", "f"],
     '\u1200': 'unicode key',
     'dot.dot': 'key'
-  }
+  },
+  n: [
+    {id: "testid1", value: "value1"},
+    {id: "testid2", value: "value2"},
+  ]
 };
 
 var objectPath = require("object-path");
@@ -65,6 +69,8 @@ var objectPath = require("object-path");
 objectPath.get(obj, "a.b");  //returns "d"
 objectPath.get(obj, ["a", "dot.dot"]);  //returns "key"
 objectPath.get(obj, 'a.\u1200');  //returns "unicode key"
+objectPath.get(obj, 'n.{id:testid2}');  //returns {id: "testid2", value: "value2"}
+objectPath.get(obj, 'n.{id:testid2}.value');  //returns "value2"
 
 //get the first non-undefined value
 objectPath.coalesce(obj, ['a.z', 'a.d', ['a','b']], 'default');
@@ -103,6 +109,8 @@ var oldVal = objectPath.ensureExists(obj, "a.b", "DEFAULT"); // oldval === "d"
 //deletes a path
 objectPath.del(obj, "a.b"); // obj.a.b is now undefined
 objectPath.del(obj, ["a","c",0]); // obj.a.c is now ['f']
+objectPath.del(obj, 'n.{id:testid2}');  // obj.n is now [{id: "testid1", value: "value1"},]
+
 
 //tests path existence
 objectPath.has(obj, "a.b"); // true
