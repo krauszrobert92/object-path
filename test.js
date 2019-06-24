@@ -255,11 +255,16 @@ describe('ObjectPath', function () {
 			var obj = {
 				a: [
 					{ id: "testId1", value: "test1Value" },
-					{ id: "testId2", value: "test2Value" }
+					{ id: "test_-Id2", value: "test2Value" }
 				]
 			};
-			objectPath.set(obj, 'a.{id:testId2}.value', "newValue")
-			expect(objectPath.get(obj, 'a.{id:testId2}.value', null)).to.be.equal("newValue");
+			objectPath.set(obj, 'a.{id:test_-Id2}.value', "newValue");
+			expect(objectPath.get(obj, 'a.{id:test_-Id2}.value', null)).to.be.equal("newValue");
+			
+			objectPath.set(obj, 'a.{id:testId3}.value', "createMe");
+			expect(objectPath.get(obj, 'a.{id:testId3}.value', null)).to.be.equal("createMe");
+
+
 		})
 
 	});

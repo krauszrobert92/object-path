@@ -88,7 +88,7 @@
 		}
 
 		function isQueryProp(prop) {
-			return typeof prop === 'string' && prop.match(/^\{[a-zA-Z0-9]+\:[A-Za-z0-9]+\}$/);
+			return typeof prop === 'string' && prop.match(/^\{[a-zA-Z0-9_-]+\:[A-Za-z0-9_-]+\}$/);
 		}
 
 		function getQuery(prop) {
