@@ -88,7 +88,7 @@
 		}
 
 		function isQueryProp(prop) {
-			return typeof prop === 'string' && prop.match(/^\{[a-zA-Z0-9_-]+\:[A-Za-z0-9_-]+\}$/);
+			return typeof prop === 'string' && /^\{[a-zA-Z0-9_-]+\:[A-Za-z0-9_-]+\}$/.test(prop);
 		}
 
 		function getQuery(prop) {
@@ -117,8 +117,10 @@
 			}
 			var currentPath = path[0];
 			var currentValue = getShallowProperty(obj, currentPath);
+
 			if (path.length === 1) {
 				if (currentValue === void 0 || !doNotReplace) {
+
 					obj[currentPath] = value;
 				}
 				return currentValue;
@@ -128,6 +130,10 @@
 				//check if we assume an array
 				if (typeof path[1] === 'number') {
 					obj[currentPath] = [];
+				} else if (isQueryProp(path[1])) {
+					var [key, keyValue] = getQuery(path[1]);
+					obj[currentPath] = [{ [key]: keyValue }];
+					currentValue = obj[currentPath];
 				} else {
 					obj[currentPath] = {};
 				}

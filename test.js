@@ -256,7 +256,7 @@ describe('ObjectPath', function () {
 				a: [
 					{ id: "testId1", value: "test1Value" },
 					{ id: "test_-Id2", value: "test2Value" }
-				]
+				],
 			};
 			objectPath.set(obj, 'a.{id:test_-Id2}.value', "newValue");
 			expect(objectPath.get(obj, 'a.{id:test_-Id2}.value', null)).to.be.equal("newValue");
@@ -264,8 +264,20 @@ describe('ObjectPath', function () {
 			objectPath.set(obj, 'a.{id:testId3}.value', "createMe");
 			expect(objectPath.get(obj, 'a.{id:testId3}.value', null)).to.be.equal("createMe");
 
+			objectPath.set(obj, 'b.{id:testId4}.value', "createMe");
+			expect(objectPath.get(obj, 'b.{id:testId4}.value', null)).to.be.equal("createMe");
+			expect(obj.b).to.deep.equal([{ id: "testId4", value: "createMe" }]);
 
 		})
+
+		it('should set value with query in path in empty object', function () {
+			var obj = {	};
+
+			objectPath.set(obj, 'b.{id:testId4}.value', "createMe");
+			expect(objectPath.get(obj, 'b.{id:testId4}.value', null)).to.be.equal("createMe");
+			expect(obj.b).to.deep.equal([{ id: "testId4", value: "createMe" }]);
+		})
+
 
 	});
 
@@ -607,6 +619,8 @@ describe('ObjectPath', function () {
 			objectPath.del(obj, 'a.{id:testId2}');
 			expect(obj.a).to.have.length(0);
 			expect(obj.a).to.be.deep.equal([]);
+
+
 
 		});
 	});
