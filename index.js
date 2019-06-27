@@ -84,7 +84,12 @@
 		};
 
 		function hasShallowProperty(obj, prop) {
-			return (options.includeInheritedProps || (typeof prop === 'number' && Array.isArray(obj)) || hasOwnProperty(obj, prop))
+			if (options.includeInheritedProps || (typeof prop === 'number' && Array.isArray(obj)) || hasOwnProperty(obj, prop))
+				return true
+			if (Array.isArray(obj) && isQueryProp(prop)) {
+				var [key, value] = getQuery(prop);
+				return obj.find(function (nestedObject) { return nestedObject[key] == value })
+			}
 		}
 
 		function isQueryProp(prop) {
@@ -96,13 +101,14 @@
 		}
 
 		function getShallowProperty(obj, prop) {
-			if (hasShallowProperty(obj, prop)) {
+			if ((options.includeInheritedProps || (typeof prop === 'number' && Array.isArray(obj)) || hasOwnProperty(obj, prop))) {
 				return obj[prop];
 			}
 			if (Array.isArray(obj) && isQueryProp(prop)) {
 				var [key, value] = getQuery(prop);
 				return obj.find(function (nestedObject) { return nestedObject[key] == value })
 			}
+			return void 0;
 		}
 
 		function set(obj, path, value, doNotReplace) {
@@ -283,10 +289,11 @@
 			}
 
 			var currentPath = getKey(path[0]);
+			var queryProp = isQueryProp(currentPath);
 
 			if (path.length == 1) {
 				if (isArray(obj)) {
-					if (isQueryProp(currentPath)) {
+					if (queryProp) {
 						var [key, value] = getQuery(currentPath);
 						var index = obj.findIndex(function (o) { return o[key] == value; })
 
@@ -311,6 +318,11 @@
 					delete obj[currentPath];
 				}
 			} else {
+				if (isArray(obj) && queryProp) {
+					var [key, value] = getQuery(currentPath);
+					currentPath = obj.findIndex(function (o) { return o[key] == value; })
+				}
+
 				return objectPath.del(obj[currentPath], path.slice(1));
 			}
 

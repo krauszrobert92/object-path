@@ -260,7 +260,7 @@ describe('ObjectPath', function () {
 			};
 			objectPath.set(obj, 'a.{id:test_-Id2}.value', "newValue");
 			expect(objectPath.get(obj, 'a.{id:test_-Id2}.value', null)).to.be.equal("newValue");
-			
+
 			objectPath.set(obj, 'a.{id:testId3}.value', "createMe");
 			expect(objectPath.get(obj, 'a.{id:testId3}.value', null)).to.be.equal("createMe");
 
@@ -271,7 +271,7 @@ describe('ObjectPath', function () {
 		})
 
 		it('should set value with query in path in empty object', function () {
-			var obj = {	};
+			var obj = {};
 
 			objectPath.set(obj, 'b.{id:testId4}.value', "createMe");
 			expect(objectPath.get(obj, 'b.{id:testId4}.value', null)).to.be.equal("createMe");
@@ -591,6 +591,21 @@ describe('ObjectPath', function () {
 			expect(objectPath.del(obj, ['b'])).to.not.have.nested.property('b.g');
 			expect(obj).to.be.deep.equal({ 'a': 'b' });
 		});
+
+		it('should delete deep paths with query', function () {
+			var obj = {
+				a: [
+					{ id: "1", name: "n" }
+				]
+			};
+
+			objectPath.del(obj, "a.{id:1}.name")
+
+			expect(obj).to.be.deep.equal({ a: [{ id: "1" }] });
+
+		});
+
+
 
 		it('should remove items from existing array', function () {
 			var obj = getTestObj();
