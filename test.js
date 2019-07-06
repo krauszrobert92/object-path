@@ -257,6 +257,7 @@ describe('ObjectPath', function () {
 					{ id: "testId1", value: "test1Value" },
 					{ id: "test_-Id2", value: "test2Value" }
 				],
+				d: []
 			};
 			objectPath.set(obj, 'a.{id:test_-Id2}.value', "newValue");
 			expect(objectPath.get(obj, 'a.{id:test_-Id2}.value', null)).to.be.equal("newValue");
@@ -264,9 +265,14 @@ describe('ObjectPath', function () {
 			objectPath.set(obj, 'a.{id:testId3}.value', "createMe");
 			expect(objectPath.get(obj, 'a.{id:testId3}.value', null)).to.be.equal("createMe");
 
-			objectPath.set(obj, 'b.{id:testId4}.value', "createMe");
-			expect(objectPath.get(obj, 'b.{id:testId4}.value', null)).to.be.equal("createMe");
-			expect(obj.b).to.deep.equal([{ id: "testId4", value: "createMe" }]);
+			objectPath.set(obj, 'b.{tid:testId4}.value', "createMe");
+			expect(objectPath.get(obj, 'b.{tid:testId4}.value', null)).to.be.equal("createMe");
+			expect(obj.b).to.deep.equal([{ tid: "testId4", value: "createMe" }]);
+
+			objectPath.set(obj, 'd.{tid:testId5}.value', "createMe");
+			console.log(obj);
+			expect(objectPath.get(obj, 'd.{tid:testId5}.value', null)).to.be.equal("createMe");
+			expect(obj.d).to.deep.equal([{ tid: "testId5", value: "createMe" }]);
 
 		})
 
@@ -923,6 +929,8 @@ describe('ObjectPath', function () {
 			expect(obj).to.have.nested.property('b.c.0', 'asdf');
 			expect(obj).to.not.have.nested.property('b.c.1');
 		});
+
+
 
 		it('should test under shallow object', function () {
 			var obj = getTestObj();

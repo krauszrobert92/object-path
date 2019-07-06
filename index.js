@@ -136,10 +136,15 @@
 				//check if we assume an array
 				if (typeof path[1] === 'number') {
 					obj[currentPath] = [];
-				} else if (isQueryProp(path[1])) {
+				} else if (isQueryProp(path[1])) { // It will create the array
 					var [key, keyValue] = getQuery(path[1]);
 					obj[currentPath] = [{ [key]: keyValue }];
 					currentValue = obj[currentPath];
+				} else if (isQueryProp(currentPath)) {
+					var [key, keyValue] = getQuery(currentPath);
+					let newValue = { [key]: keyValue };
+					obj.push(newValue);
+					currentValue = newValue;
 				} else {
 					obj[currentPath] = {};
 				}
